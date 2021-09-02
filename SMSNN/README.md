@@ -54,7 +54,7 @@ Multiple usage of the branch :
 
 * 5. Main model with St3 : _patch_example_TODO (style transfer)
 
-## ** USE CODE **
+## **USE CODE**
 
 ### **ENVIRONMENT SETUP**
 
