@@ -131,4 +131,10 @@ Training & Testing ST3 on the top of the pretrained 'SR' model (Branch are train
 (CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'False' -testing_main 'False' -main_network 'SR' -style_model 'False' -col_model 'False' -ST3_model 'True'
 ```
 
+### MODEL FOLDER 
 
+_TODO_
+
+### MCOMBINING BRANCHES
+
+_TODO_
