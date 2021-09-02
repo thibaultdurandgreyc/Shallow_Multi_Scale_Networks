@@ -8,23 +8,23 @@
 
 The goal of this project is to upscale and improve the quality of low resolution images with control over the output image.
 
-This project includes Tensorflow (Keras A.P.I) implementation of Shallow Multi Scale Network for Stylized Super-Resolution (ICIP 2021 / ORASIS 2021) which consists in performing Super-Resolution (_SR_) with parallel branches specialized in stylizing high frequency details. 
+This project includes Tensorflow (Keras A.P.I) implementation of Shallow Multi Scale Network for Stylized Super-Resolution (ICIP 2021 / ORASIS 2021) which consists in performing Super-Resolution (_SR_) with parallel branches specialized in different frequency bands. 'Style' branches are specilized into stylizing high frequency details of the image from an external style image.
 
 ### **DIFFERENT NETWORKS**
 Also, other Branches and Options are available. We denote :
-* **'MAIN NN'** : The main network for performing 'SR' as discussed in the papers, but also 'DENOISING' or 'BLURRING'. The network, as shown in following scheme, is composed by different branches linearly combined to reconstruct the output.
+* **'MAIN NN'** : The main network for performing 'SR' **as discussed in the papers**, but also 'DENOISING' or 'BLURRING'. The network, as shown in following scheme, is composed by different branches linearly combined to reconstruct the output.
  
 _Input_ : Y,cb,cr channels _Output_ : Y channel  
 
-* **'St(y,cbcr)'BRANCH NN** : High frequency style transfer residual branches which transfer details from a Style image to the Main neural network output image through gram matrices. The branch is plugged on the top of the MAIN model ('SR' model Typically as discussed in the papers). The branch is trained on the top of the Main model for which parameters are frozen. Residual output is litteraly added on the top of the Main model Output Y channel. Note that it is possible for the user to generate also Cb & Cr from style transfert (not discussed in the paper).
+* **'St(y,cbcr)'BRANCH NN** : High frequency style transfer residual branches which transfer details from a Style image to the Main neural network output image through gram matrices. The branch is plugged on the top of the MAIN model ('SR' model Typically **as discussed in the papers**). The branch is trained on the top of the Main model for which parameters are frozen. Residual output is litteraly added on the top of the Main model Output Y channel. Note that it is possible for the user to generate also Cb & Cr from style transfert (**not discussed in the paper**).
  
 _Input_ : Y,cb,cr channels   _Output_ : Y channel   OR  Y,cb,cr channels
  
-* **'St(Col)' BRANCH NN** : Color transfer branch not mentionned in the papers. Transfers color from a Style image to the colors of the Main model output with through an histogram matching loss.
+* **'St(Col)' BRANCH NN** : Color transfer branch **not mentionned in the papers**. Transfers color from a Style image to the colors of the Main model output with through an histogram matching loss.
 
 _Input_ : Y,cb,cr channels   _Output_ : cb , cr channels
 
-* **'St3' BRANCH NN** : Style transfer branches not mentionned in the papers. Transfers the Style of an image to the Main model output through gram matrices. The branch is not residual.
+* **'St3' BRANCH NN** : Style transfer branches **not mentionned in the papers**. Transfers the Style of an image to the Main model output through gram matrices. The branch is not residual.
 
 _Input_ : Y,cb,cr channels   _Output_ :  Y,cb,cr channels
 
