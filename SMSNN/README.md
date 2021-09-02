@@ -2,7 +2,7 @@
 # Shallow_Multi_Scale_Networks
 ![teaser_poster_eng](https://user-images.githubusercontent.com/87061912/131678960-06801817-89f8-4dd1-8841-b534effb5ede.png)
 
-## ** PRESENTATION **
+## **PRESENTATION**
 
 ### **INTRODUCTION**
 
@@ -10,7 +10,7 @@ The goal of this project is to upscale and improve the quality of low resolution
 
 This project includes Tensorflow (Keras A.P.I) implementation of Shallow Multi Scale Network for Stylized Super-Resolution (ICIP 2021 / ORASIS 2021) which consists in performing Super-Resolution (_SR_) with parallel branches specialized in stylizing high frequency details. 
 
-### ** DIFFERENT NETWORKS**
+### **DIFFERENT NETWORKS**
 Also, other Branches and Options are available. We denote :
 * **'MAIN NN'** : The main network for performing 'SR' as discussed in the papers, but also 'DENOISING' or 'BLURRING'. The network, as shown in following scheme, is composed by different branches linearly combined to reconstruct the output.
  
@@ -30,7 +30,7 @@ _Input_ : Y,cb,cr channels   _Output_ :  Y,cb,cr channels
 
 ![1 0_multiple_branches](https://user-images.githubusercontent.com/87061912/131682395-2083a2a8-7f2f-4013-ae2b-ba05640d25bc.png)
 
-### ** ARCHITECTURES **
+### **ARCHITECTURES**
 
 * **'MAIN NN'** : multi-scale network with multiple independant branches. Each branch is specialized into synthetising a band of frequency because of a passband filter at the end of the branch (Difference of gaussians). With the default parameters, contains more or less _200k parameters_
 
@@ -38,7 +38,7 @@ _Input_ : Y,cb,cr channels   _Output_ :  Y,cb,cr channels
 
 * **'St3' BRANCH NN** : (Jonshon auto-encodeur)
 
-### ** EXAMPLES **
+### **EXAMPLES**
 
 Multiple usage of the branch :
 
@@ -131,10 +131,10 @@ Training & Testing ST3 on the top of the pretrained 'SR' model (Branch are train
 (CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'False' -testing_main 'False' -main_network 'SR' -style_model 'False' -col_model 'False' -ST3_model 'True'
 ```
 
-### MODEL FOLDER 
+### **MODEL FOLDER**
 
 _TODO_
 
-### MCOMBINING BRANCHES
+### **COMBINING BRANCHES**
 
 _TODO_
