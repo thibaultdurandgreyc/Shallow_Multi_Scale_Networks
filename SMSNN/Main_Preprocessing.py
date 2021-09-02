@@ -7,7 +7,7 @@ from various_functions.custom_filters import *
 import argparse
 
 '''
-Create Patchs data in specific folders
+Create Patchs data in specific folders out of DIV2K images
 '''
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Launch training - Testing -Etude réseau')    
