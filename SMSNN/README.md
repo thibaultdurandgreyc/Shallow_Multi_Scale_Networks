@@ -104,31 +104,34 @@ python3 Main_Preprocessing.py -r .../SMSNN/Data_results
 ### **TRAIN & TEST MAIN MODEL**
 You need to make sure you process Training/Testing on Gpu; main_network should be 'SR', 'DENOISING' or 'BLURRING'
 ```console
-(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'True' -testing_main 'True' -main_network 'SR' -style_model 'False' -col_model 'False' -ST3_model 'False'
+(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'True' -testing_main 'True' -main_network 'SR' 
 ```
 
 ### **TRAIN & TEST BRANCH MODEL**
 
 Training & Testing St(y) on the top of the pretrained 'SR' model (Branch are trained one by one sorting image from /SELECTED_STYLE )
 
+* If Using - main_network 'DENOISING' ; make sure to apply -sigma_noise_blur 0.1
+* If Using - main_network 'BLURRING' ; make sure to apply -sigma_noise_blur 3.0
+
 ```console
-(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'False' -testing_main 'False' -main_network 'SR' -style_model 'True' -col_model 'False' -ST3_model 'False'
+(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -main_network 'SR' -style_model 'True'
 ```
 
 Training & Testing St(ycbcr) on the top of the pretrained 'SR' model (Branch are trained one by one sorting image from /SELECTED_COLORS ) 
 
 ```console
-(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'False' -testing_main 'False' -main_network 'SR' -style_model 'False' -col_model 'True' -ST3_model 'False' -cbcr_sty 'True'
+(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -main_network 'SR' -style_model 'True' -cbcr_sty 'True'
 ```
 
 Training & Testing St(col) on the top of the pretrained 'SR' model (Branch are trained one by one sorting image from /SELECTED_STYLE 
 ```console
-(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'False' -testing_main 'False' -main_network 'SR' -style_model 'False' -col_model 'False' -ST3_model 'True'
+(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -main_network 'SR' -col_model 'True' 
 ```
 
 Training & Testing ST3 on the top of the pretrained 'SR' model (Branch are trained one by one sorting image from /SELECTED_STYLE_ST3 )
 ```console
-(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -training_main 'False' -testing_main 'False' -main_network 'SR' -style_model 'False' -col_model 'False' -ST3_model 'True'
+(CUDA_VISIBLE_DEVICE=i) python3 Main.py -r .../SMSNN/Data_results -main_network 'SR' -ST3_model 'True'
 ```
 
 ### **MODEL FOLDER**
