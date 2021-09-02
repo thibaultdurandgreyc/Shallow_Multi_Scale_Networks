@@ -18,7 +18,6 @@ from Networks.Generator_Constructor import *
 from Networks.Compilation_NN import *
 from Networks.Loss_Constructor import *
 
-
 from Testing.PDF_reports import *
 import numpy as np
 import imageio
@@ -355,9 +354,7 @@ def process_test_controle_MAIN(model,main_network:str, root:str,save_rep:str, sa
     """
     Evaluation of testing patchs (qualitatively) for the MAIN NN 'model'. Generates visual reports. 
     """
-    paquet = nombre_patch_test//8
-    #print("mode train")
-    #tf.keras.backend.set_learning_phase(1)  # 0 : test /// 1 : train
+    paquet = nombre_patch_test//30
     
     # Generator
     gen=Generator_test_patch(main_network=main_network, size_output=taille,  border=border, root=root)
@@ -373,52 +370,52 @@ def process_test_controle_MAIN(model,main_network:str, root:str,save_rep:str, sa
 
     for ind in range(nombre_boucle):
         for i in range(image_debut_boucle,(ind+1)*paquet): 
+            if (i%multiple==1):
+                # Patch Information ; loading INPUT (Bic,Blurry or Noisy), Ground truth, Name
+                nom =gen[0].filenames[i].split("/")[-1].replace(".png","")
+                entree_ycbcr = gen[0][i].reshape(taille+2*border,taille+2*border,3)
+                INPUT_tf=gen[0][i]
+                TRUE_tf= gen[1][i]
+                if main_network=="SR":
+                    INPUT_tf = INPUT_tf
+                elif main_network=="DENOISING":
+                    INPUT_tf = INPUT_tf.copy()
+                    INPUT_tf[:,:,:,0]+=np.random.normal(0,sigma_noise_blur,(INPUT_tf.shape[1],INPUT_tf.shape[2]))        
+                elif main_network=="BLURRING":
+                    INPUT_tf = INPUT_tf.copy()
+                    INPUT_y = gaussian_filter(INPUT_tf[:,:,:,0], sigma=sigma_noise_blur)
+                    INPUT_tf[:,:,:,0]=INPUT_y
+                
+                entree_y , entree_cb , entree_cr = entree_ycbcr[:,:,0],entree_ycbcr[:,:,1],entree_ycbcr[:,:,2]        
+                entree_y = entree_y[border:entree_y.shape[0]-border,border:entree_y.shape[1]-border]
+                entree_ycbcr=entree_ycbcr[border:entree_ycbcr.shape[0]-border,border:entree_ycbcr.shape[1]-border]
+                
+                
+                true_y=TRUE_tf[0,:,:,0].reshape(TRUE_tf.shape[1],TRUE_tf.shape[2])
+                true_ycbcr=TRUE_tf[0,:,:,:].reshape(TRUE_tf.shape[1],TRUE_tf.shape[2],3)
+                
+                prediction_ycbcr, SRf_i_yDoG,SRf_i_cbDoG,SRf_i_crDoG,SRf_i_yDoGBn,SRf_i_cbDoGBn,SRf_i_crDoGBn,SRf_o_y,SRf_o_yDoG,SRf_o_yDoGBn,SRf_o_yFinal = compute_features_MAIN(SRm_i_y,SRm_i_cb,SRm_i_cr,SRm_i_yDoG,SRm_i_cbDoG,SRm_i_crDoG,SRm_i_yDoGBn,SRm_i_cbDoGBn,SRm_i_crDoGBn,SRm_o_y,SRm_o_yDoG,SRm_o_yDoGBn,SRm_o_yFinal,
+                                                                                                                                                                                                          DOG_init,DOG_fin,BN_init,BN_fin, model, INPUT_tf ) 
+                # PSNR
+                mse_reseau,mse_bic = np.mean((true_ycbcr-prediction_ycbcr)**2) , np.mean((true_y-entree_y)**2)
+                
+                # PDF Reports
+                tbadded=TRUE_tf[0,:,:,0]-INPUT_tf[0,border:INPUT_tf.shape[0]-border-1,border:INPUT_tf.shape[1]-border,0]
+                added=prediction_ycbcr[0,:,:,0]-INPUT_tf[0,border:INPUT_tf.shape[0]-border-1,border:INPUT_tf.shape[1]-border,0]
             
-            # Patch Information ; loading INPUT (Bic,Blurry or Noisy), Ground truth, Name
-            nom =gen[0].filenames[i].split("/")[-1].replace(".png","")
-            entree_ycbcr = gen[0][i].reshape(taille+2*border,taille+2*border,3)
-            INPUT_tf=gen[0][i]
-            TRUE_tf= gen[1][i]
-            if main_network=="SR":
-                INPUT_tf = INPUT_tf
-            elif main_network=="DENOISING":
-                INPUT_tf = INPUT_tf.copy()
-                INPUT_tf[:,:,:,0]+=np.random.normal(0,sigma_noise_blur,(INPUT_tf.shape[1],INPUT_tf.shape[2]))        
-            elif main_network=="BLURRING":
-                INPUT_tf = INPUT_tf.copy()
-                INPUT_y = gaussian_filter(INPUT_tf[:,:,:,0], sigma=sigma_noise_blur)
-                INPUT_tf[:,:,:,0]=INPUT_y
-            
-            entree_y , entree_cb , entree_cr = entree_ycbcr[:,:,0],entree_ycbcr[:,:,1],entree_ycbcr[:,:,2]        
-            entree_y = entree_y[border:entree_y.shape[0]-border,border:entree_y.shape[1]-border]
-            entree_ycbcr=entree_ycbcr[border:entree_ycbcr.shape[0]-border,border:entree_ycbcr.shape[1]-border]
-            
-            
-            true_y=TRUE_tf[0,:,:,0].reshape(TRUE_tf.shape[1],TRUE_tf.shape[2])
-            true_ycbcr=TRUE_tf[0,:,:,:].reshape(TRUE_tf.shape[1],TRUE_tf.shape[2],3)
-            
-            prediction_ycbcr, SRf_i_yDoG,SRf_i_cbDoG,SRf_i_crDoG,SRf_i_yDoGBn,SRf_i_cbDoGBn,SRf_i_crDoGBn,SRf_o_y,SRf_o_yDoG,SRf_o_yDoGBn,SRf_o_yFinal = compute_features_MAIN(SRm_i_y,SRm_i_cb,SRm_i_cr,SRm_i_yDoG,SRm_i_cbDoG,SRm_i_crDoG,SRm_i_yDoGBn,SRm_i_cbDoGBn,SRm_i_crDoGBn,SRm_o_y,SRm_o_yDoG,SRm_o_yDoGBn,SRm_o_yFinal,
-                                                                                                                                                                                                      DOG_init,DOG_fin,BN_init,BN_fin, model, INPUT_tf ) 
-            # PSNR
-            mse_reseau,mse_bic = np.mean((true_ycbcr-prediction_ycbcr)**2) , np.mean((true_y-entree_y)**2)
-            
-            # PDF Reports
-            tbadded=TRUE_tf[0,:,:,0]-INPUT_tf[0,border:INPUT_tf.shape[0]-border-1,border:INPUT_tf.shape[1]-border,0]
-            added=prediction_ycbcr[0,:,:,0]-INPUT_tf[0,border:INPUT_tf.shape[0]-border-1,border:INPUT_tf.shape[1]-border,0]
-        
-            list_tensor_input= [INPUT_tf[0,:,:,0],INPUT_tf[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr[0,:,:,0],prediction_ycbcr[0,:,:,:]]
-            list_tensor_intermediate_features=[tbadded,added]
-                    
-            name_tensor_input=["Input_y","Input","True_y","True","Output_y","Output"]
-            name_tensor_intermediate_features=["To be added","Added"]
-            
-            # PDF Report
-            Report_features_MAIN(x=0,y=0,dx=taille,SRf_o_y=SRf_o_y,SRf_o_yDoG=SRf_o_yDoG,SRf_o_yDoGBn=SRf_o_yDoGBn,SRf_o_yFinal=SRf_o_yFinal,input_=INPUT_tf,prediction=prediction_ycbcr,BN_init=BN_init,BN_fin=BN_fin,DOG_init=DOG_init, DOG_fin=DOG_fin,taille = INPUT_tf.shape[1] ,nombre_class = nombre_class , nom = nom ,save_rep = save_rep ,root_folder = root)
-           
-            Patch_report_features(list_tensor_input, list_tensor_intermediate_features, name_tensor_input, name_tensor_intermediate_features,mse_reseau,mse_bic,save_rep=save_rep,taille=taille,nombre_class=nombre_class,root=root,border=border,nom=nom,ecart=22,numero_patch=i)
-            
-            Patch_report_MAIN(prediction_ycbcr[0,:,:,:],INPUT_tf[0,border:INPUT_tf.shape[0]-border-1,border:INPUT_tf.shape[1]-border,0],SRf_o_yFinal,save_rep=save_rep,nombre_class=nombre_class,root_folder=root,nom=nom)
-            
+                list_tensor_input= [INPUT_tf[0,:,:,0],INPUT_tf[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr[0,:,:,0],prediction_ycbcr[0,:,:,:]]
+                list_tensor_intermediate_features=[tbadded,added]
+                        
+                name_tensor_input=["Input_y","Input","True_y","True","Output_y","Output"]
+                name_tensor_intermediate_features=["To be added","Added"]
+                
+                # PDF Report
+                Report_features_MAIN(x=0,y=0,dx=taille,SRf_o_y=SRf_o_y,SRf_o_yDoG=SRf_o_yDoG,SRf_o_yDoGBn=SRf_o_yDoGBn,SRf_o_yFinal=SRf_o_yFinal,input_=INPUT_tf,prediction=prediction_ycbcr,BN_init=BN_init,BN_fin=BN_fin,DOG_init=DOG_init, DOG_fin=DOG_fin,taille = INPUT_tf.shape[1] ,nombre_class = nombre_class , nom = nom ,save_rep = save_rep ,root_folder = root)
+               
+                Patch_report_features(list_tensor_input, list_tensor_intermediate_features, name_tensor_input, name_tensor_intermediate_features,mse_reseau,mse_bic,save_rep=save_rep,taille=taille,nombre_class=nombre_class,root=root,border=border,nom=nom,ecart=22,numero_patch=i)
+                
+                Patch_report_MAIN(prediction_ycbcr[0,:,:,:],INPUT_tf[0,border:INPUT_tf.shape[0]-border-1,border:INPUT_tf.shape[1]-border,0],SRf_o_yFinal,save_rep=save_rep,nombre_class=nombre_class,root_folder=root,nom=nom)
+                
             
         image_debut_boucle  = (ind+1)*paquet+1 
         Patch_report_features
@@ -498,8 +495,6 @@ def Image_benchmark_MAIN(model_identite,main_network:str,ponderation_features:li
     y_zoom=293
     dx_zoom=450
     R=4
-    
-    #tf.keras.backend.set_learning_phase(0)  # 0 : test /// 1 : train
 
     tf.keras.backend.clear_session()
     new_model = MAIN_network_none(nombre_class=nombre_class,filtres=filtres, ponderation_features=ponderation_features,kernel=nombre_kernel,w_h=w_h,w_v=w_v, BN_init=BN_init, BN_fin=BN_fin, DOG_init=DOG_init, DOG_fin=DOG_fin)  
@@ -508,8 +503,8 @@ def Image_benchmark_MAIN(model_identite,main_network:str,ponderation_features:li
 
     nombre_image=len(liste_images)
     for img in liste_images :
-        print("Traitement de l'image: "+str(img))
-        
+        print("Infering image: "+str(img))
+
         # Data Preparation & Input
         img_array_LR = Ouverture_img(os.path.join(os.path.join(os.path.join(os.path.join(rep_images,"LR"),img.replace(".png","_LR.png")))),1)[0]#.astype(np.float64)
         img_array_LR=img_array_LR[int(x_m/R):int(x_max/R),int(y_m/R):int(y_max/R),:]/256.
@@ -527,7 +522,6 @@ def Image_benchmark_MAIN(model_identite,main_network:str,ponderation_features:li
             INPUT[:,:,0]=INPUT_y
         INPUT=np.expand_dims(INPUT,axis=0)
         TRUE=np.expand_dims(img_array_HR,axis=0)
-
         
         # Features Main NN
         SRm_i_y,SRm_i_cb,SRm_i_cr,SRm_i_yDoG,SRm_i_cbDoG,SRm_i_crDoG,SRm_i_yDoGBn,SRm_i_cbDoGBn,SRm_i_crDoGBn,SRm_o_y,SRm_o_yDoG,SRm_o_yDoGBn,SRm_o_yFinal = extract_layers_MAIN(new_model,nombre_class,DOG_init,DOG_fin,BN_init,BN_fin)
@@ -665,8 +659,6 @@ def Image_benchmark_BRANCH(model_identite,main_network:str,type_branch:str,ponde
     liste_images = [x for x in os.listdir(rep_images) if x.endswith(".png")]
     x_m,y_m,x_max,y_max=300,300,900,900
     R=4
-    
-    #tf.keras.backend.set_learning_phase(0)  # 0 : test /// 1 : train
     tf.keras.backend.clear_session()
 
     # Change Input size
@@ -801,11 +793,9 @@ def process_test_controle_BRANCH(model,style_patch,clusters,bins,main_network:st
     Evaluation of testing patchs (qualitatively) for BRANCH NN 'model'. Generates visual reports. Same functions for all the branch NN.
     """
     paquet = nombre_patch_test//8
-    #print("mode train")
-    #tf.keras.backend.set_learning_phase(1)  # 0 : test /// 1 : train
     
     gen=Generator_test_patch(main_network=main_network, size_output=taille,  border=border, root=root)
-    multiple = int(nombre_patch_test/100)
+    multiple = int(nombre_patch_test/30)
         
     if type_branch=="Stycbcr":
         STm_i_y,STm_i_cb,STm_i_cr, STm_i_yDoG,STm_i_cbDoG,STm_i_crDoG,   STm_i_yDoGBn,STm_i_cbDoGBn,STm_i_crDoGBn ,STm_o_y,STm_o_yDoG,STm_o_yDoGBn,STm_o_yFinal,STm_o_yFinal_residu = extract_layers__STr_y(model,BN_init,BN_fin,DOG_init,DOG_fin)
@@ -825,75 +815,75 @@ def process_test_controle_BRANCH(model,style_patch,clusters,bins,main_network:st
     for ind in range(nombre_boucle):
         for i in range(image_debut_boucle,(ind+1)*paquet): 
 
-            #if (i%multiple==1):
+            if (i%multiple==1):
             
-            nom =gen[0].filenames[i].split("/")[-1].replace(".png","")
-            
-            INPUT = gen[0][i].reshape(taille_i+2*border,taille_i+2*border,3)
-            if main_network=="DENOISING":
-                INPUT[:,:,0]+=np.random.normal(0,sigma_noise_blur,(INPUT.shape[0],INPUT.shape[1]))            
-            elif main_network=="BLURRING":
-                INPUT_y = gaussian_filter(INPUT[:,:,0], sigma=sigma_noise_blur)
-                INPUT[:,:,0]=INPUT_y
+                nom =gen[0].filenames[i].split("/")[-1].replace(".png","")
                 
-            INPUT=np.expand_dims(INPUT,axis=0)
-            TRUE_tf= gen[1][i]
-
-            if main_network=="SR_EDSR":
-                INPUT=INPUT[:,border:INPUT.shape[0]-border-1,border:INPUT.shape[1]-border,:]*255.
-            # Features computations
-            if type_branch=="Stycbcr":    
-                prediction, STf_i_yDoG,STf_i_cbDoG,STf_i_crDoG,STf_i_yDoGBn,STf_i_cbDoGBn,STf_i_crDoGBn,STf_o_y,STf_o_yDoG,STf_o_yDoGBn,STf_o_yFinal = compute_features_Sty(STm_i_y,STm_i_cb,STm_i_cr,STm_i_yDoG,STm_i_cbDoG,STm_i_crDoG,STm_i_yDoGBn,STm_i_cbDoGBn,STm_i_crDoGBn,STm_o_y,STm_o_yDoG,STm_o_yDoGBn,STm_o_yFinal,DOG_init,DOG_fin,BN_init,BN_fin,model,INPUT ) 
-                
-            if type_branch=="Stcol":
-                prediction ,COLf_o_cbFinalresidu,COLf_o_crFinalresidu=compute_features_Stcol(COLm_i_y,COLm_i_cb,COLm_i_cr, COLm_i_yDoG,COLm_i_cbDoG,COLm_i_crDoG,   COLm_i_yDoGBn,COLm_i_cbDoGBn,COLm_i_crDoGBn ,COLm_o_cb,COLm_o_cbDoG,COLm_o_cbDoGBn,COLm_o_cbFinal,COLm_o_cbFinalresidu,COLm_o_cr,COLm_o_crDoG,COLm_o_crDoGBn,COLm_o_crFinal,COLm_o_crFinalresidu,DOG_init,DOG_fin,BN_init,BN_fin,model,INPUT )
-    
-            if type_branch =="St3":        
-                prediction ,ST3f_o_yFinal_residu,ST3f_o_cbFinal_residu,ST3f_o_crFinal_residu=  compute_features_St3(ST3m_i_y,ST3m_i_cb,ST3m_i_cr, ST3m_i_yDoG,ST3m_i_cbDoG,ST3m_i_crDoG,   ST3m_i_yDoGBn,ST3m_i_cbDoGBn,ST3m_i_crDoGBn ,ST3m_o_y,ST3m_o_cb,ST3m_o_yDoG,ST3m_o_cbDoG,ST3m_o_cbDoGBn,ST3m_o_yDoGBn,ST3m_o_cbFinal,ST3m_o_yFinal,ST3m_o_cbFinalresidu,ST3m_o_yFinalresidu,ST3m_o_cr,ST3m_o_crDoG,ST3m_o_crDoGBn,ST3m_o_crFinal,ST3m_o_crFinalresidu,DOG_init,DOG_fin,BN_init,BN_fin,model,INPUT ) 
-        
-            y,cb,cr =RGB2Ycbcr_numpy(prediction[0,:,:,0],prediction[0,:,:,1],prediction[0,:,:,2])
-            prediction_ycbcr= np.stack([y,cb,cr],axis=-1)
-        
-            # Tensor to display
-            if main_network=="SR_EDSR": # adapting report if main model is already trained
-                list_tensor_input,list_tensor_intermediate_features= [TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr[:,:,0],prediction_ycbcr,style_patch],[]
-                name_tensor_input,name_tensor_intermediate_features=["True_y","True","Output_y","Output","style_patch"],[]
-                INPUT=INPUT/255.
-            else:
-                if type_branch=="Stycbcr" :    
-                    tbadded=TRUE_tf[0,:,:,0]-INPUT[0,border:INPUT.shape[0]-border-1,border:INPUT.shape[1]-border,0]
-                    added=prediction_ycbcr[:,:,0]-INPUT[0,border:INPUT.shape[0]-border-1,border:INPUT.shape[1]-border,0]
+                INPUT = gen[0][i].reshape(taille_i+2*border,taille_i+2*border,3)
+                if main_network=="DENOISING":
+                    INPUT[:,:,0]+=np.random.normal(0,sigma_noise_blur,(INPUT.shape[0],INPUT.shape[1]))            
+                elif main_network=="BLURRING":
+                    INPUT_y = gaussian_filter(INPUT[:,:,0], sigma=sigma_noise_blur)
+                    INPUT[:,:,0]=INPUT_y
                     
-                    list_tensor_input= [INPUT[0,:,:,0],INPUT[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],STf_o_yFinal[0,:,:,0],prediction_ycbcr,style_patch]
-                    list_tensor_intermediate_features=[STf_o_y[0,:,:,0],STf_o_yDoG[0,:,:,0],tbadded,added]
-                        
-                    name_tensor_input,name_tensor_intermediate_features=["Input_y","Input","True_y","True","Output_y","Output","style_patch"],["Output_BRANCH","Output_BRANCH_DoG","To be added","Added"]
+                INPUT=np.expand_dims(INPUT,axis=0)
+                TRUE_tf= gen[1][i]
+    
+                if main_network=="SR_EDSR":
+                    INPUT=INPUT[:,border:INPUT.shape[0]-border-1,border:INPUT.shape[1]-border,:]*255.
+                # Features computations
+                if type_branch=="Stycbcr":    
+                    prediction, STf_i_yDoG,STf_i_cbDoG,STf_i_crDoG,STf_i_yDoGBn,STf_i_cbDoGBn,STf_i_crDoGBn,STf_o_y,STf_o_yDoG,STf_o_yDoGBn,STf_o_yFinal = compute_features_Sty(STm_i_y,STm_i_cb,STm_i_cr,STm_i_yDoG,STm_i_cbDoG,STm_i_crDoG,STm_i_yDoGBn,STm_i_cbDoGBn,STm_i_crDoGBn,STm_o_y,STm_o_yDoG,STm_o_yDoGBn,STm_o_yFinal,DOG_init,DOG_fin,BN_init,BN_fin,model,INPUT ) 
                     
                 if type_branch=="Stcol":
-                    list_tensor_input,list_tensor_intermediate_features= [INPUT[0,:,:,0],INPUT[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr,style_patch],[cb,cr]
-                    name_tensor_input, name_tensor_intermediate_features=["Input_y","Input","True_y","True","Output","style_patch"],["cb","cr"]
-                    
-                    # PNG histogram -- Out
-                    cbcr=np.stack([prediction_ycbcr[:,:,1],prediction_ycbcr[:,:,2]],-1)
-                    cbcr = np.reshape(cbcr,(cbcr.shape[0]*cbcr.shape[1],2)).astype(np.float32)
-                    hist_out = histogram_2d(cbcr, clusters , cbcr.shape[0],cbcr.shape[1])       
-                    Save_Hist_1d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST1D_out__.png"),bins)
-                    Save_Hist_2d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST2D_out__.png"),bins)
-                    
-                    # hist _ true
-                    cbcr=np.stack([TRUE_tf[:,:,:,1],TRUE_tf[:,:,:,2]],-1)
-                    cbcr = np.reshape(cbcr,(cbcr.shape[1]*cbcr.shape[2],2)).astype(np.float32)
-                    hist_out = histogram_2d(cbcr, clusters , cbcr.shape[0],cbcr.shape[1])       
-                    Save_Hist_1d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST1D_true__.png"),bins)
-                    Save_Hist_2d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST2D_true__.png"),bins)
-                
+                    prediction ,COLf_o_cbFinalresidu,COLf_o_crFinalresidu=compute_features_Stcol(COLm_i_y,COLm_i_cb,COLm_i_cr, COLm_i_yDoG,COLm_i_cbDoG,COLm_i_crDoG,   COLm_i_yDoGBn,COLm_i_cbDoGBn,COLm_i_crDoGBn ,COLm_o_cb,COLm_o_cbDoG,COLm_o_cbDoGBn,COLm_o_cbFinal,COLm_o_cbFinalresidu,COLm_o_cr,COLm_o_crDoG,COLm_o_crDoGBn,COLm_o_crFinal,COLm_o_crFinalresidu,DOG_init,DOG_fin,BN_init,BN_fin,model,INPUT )
+        
                 if type_branch =="St3":        
-                    list_tensor_input= [INPUT[0,:,:,0],INPUT[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr,style_patch]
-                    list_tensor_intermediate_features=[prediction_ycbcr[:,:,0],prediction_ycbcr[:,:,1],prediction_ycbcr[:,:,2]]
-                    name_tensor_input,name_tensor_intermediate_features=["Input_y","Input","True_y","True","Output","style_patch"],["y","cb","cr"]
-                
-                # PDF Report
-            Patch_report_features(list_tensor_input, list_tensor_intermediate_features, name_tensor_input, name_tensor_intermediate_features,0,0,save_rep=save_rep,taille=taille,nombre_class=nombre_class,root=root,border=border,nom=nom,ecart=22,numero_patch=i)
+                    prediction ,ST3f_o_yFinal_residu,ST3f_o_cbFinal_residu,ST3f_o_crFinal_residu=  compute_features_St3(ST3m_i_y,ST3m_i_cb,ST3m_i_cr, ST3m_i_yDoG,ST3m_i_cbDoG,ST3m_i_crDoG,   ST3m_i_yDoGBn,ST3m_i_cbDoGBn,ST3m_i_crDoGBn ,ST3m_o_y,ST3m_o_cb,ST3m_o_yDoG,ST3m_o_cbDoG,ST3m_o_cbDoGBn,ST3m_o_yDoGBn,ST3m_o_cbFinal,ST3m_o_yFinal,ST3m_o_cbFinalresidu,ST3m_o_yFinalresidu,ST3m_o_cr,ST3m_o_crDoG,ST3m_o_crDoGBn,ST3m_o_crFinal,ST3m_o_crFinalresidu,DOG_init,DOG_fin,BN_init,BN_fin,model,INPUT ) 
+            
+                y,cb,cr =RGB2Ycbcr_numpy(prediction[0,:,:,0],prediction[0,:,:,1],prediction[0,:,:,2])
+                prediction_ycbcr= np.stack([y,cb,cr],axis=-1)
+            
+                # Tensor to display
+                if main_network=="SR_EDSR": # adapting report if main model is already trained
+                    list_tensor_input,list_tensor_intermediate_features= [TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr[:,:,0],prediction_ycbcr,style_patch],[]
+                    name_tensor_input,name_tensor_intermediate_features=["True_y","True","Output_y","Output","style_patch"],[]
+                    INPUT=INPUT/255.
+                else:
+                    if type_branch=="Stycbcr" :    
+                        tbadded=TRUE_tf[0,:,:,0]-INPUT[0,border:INPUT.shape[0]-border-1,border:INPUT.shape[1]-border,0]
+                        added=prediction_ycbcr[:,:,0]-INPUT[0,border:INPUT.shape[0]-border-1,border:INPUT.shape[1]-border,0]
+                        
+                        list_tensor_input= [INPUT[0,:,:,0],INPUT[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],STf_o_yFinal[0,:,:,0],prediction_ycbcr,style_patch]
+                        list_tensor_intermediate_features=[STf_o_y[0,:,:,0],STf_o_yDoG[0,:,:,0],tbadded,added]
+                            
+                        name_tensor_input,name_tensor_intermediate_features=["Input_y","Input","True_y","True","Output_y","Output","style_patch"],["Output_BRANCH","Output_BRANCH_DoG","To be added","Added"]
+                        
+                    if type_branch=="Stcol":
+                        list_tensor_input,list_tensor_intermediate_features= [INPUT[0,:,:,0],INPUT[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr,style_patch],[cb,cr]
+                        name_tensor_input, name_tensor_intermediate_features=["Input_y","Input","True_y","True","Output","style_patch"],["cb","cr"]
+                        
+                        # PNG histogram -- Out
+                        cbcr=np.stack([prediction_ycbcr[:,:,1],prediction_ycbcr[:,:,2]],-1)
+                        cbcr = np.reshape(cbcr,(cbcr.shape[0]*cbcr.shape[1],2)).astype(np.float32)
+                        hist_out = histogram_2d(cbcr, clusters , cbcr.shape[0],cbcr.shape[1])       
+                        Save_Hist_1d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST1D_out__.png"),bins)
+                        Save_Hist_2d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST2D_out__.png"),bins)
+                        
+                        # hist _ true
+                        cbcr=np.stack([TRUE_tf[:,:,:,1],TRUE_tf[:,:,:,2]],-1)
+                        cbcr = np.reshape(cbcr,(cbcr.shape[1]*cbcr.shape[2],2)).astype(np.float32)
+                        hist_out = histogram_2d(cbcr, clusters , cbcr.shape[0],cbcr.shape[1])       
+                        Save_Hist_1d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST1D_true__.png"),bins)
+                        Save_Hist_2d_tf(hist_out,os.path.join(save_rep,str(nom.replace(".png",""))+"__HIST2D_true__.png"),bins)
+                    
+                    if type_branch =="St3":        
+                        list_tensor_input= [INPUT[0,:,:,0],INPUT[0,:,:,:], TRUE_tf[0,:,:,0],TRUE_tf[0,:,:,:],prediction_ycbcr,style_patch]
+                        list_tensor_intermediate_features=[prediction_ycbcr[:,:,0],prediction_ycbcr[:,:,1],prediction_ycbcr[:,:,2]]
+                        name_tensor_input,name_tensor_intermediate_features=["Input_y","Input","True_y","True","Output","style_patch"],["y","cb","cr"]
+                    
+                    # PDF Report
+                Patch_report_features(list_tensor_input, list_tensor_intermediate_features, name_tensor_input, name_tensor_intermediate_features,0,0,save_rep=save_rep,taille=taille,nombre_class=nombre_class,root=root,border=border,nom=nom,ecart=22,numero_patch=i)
                 
         image_debut_boucle  = (ind+1)*paquet+1 
 

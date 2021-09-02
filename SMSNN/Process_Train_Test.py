@@ -23,7 +23,6 @@ from Networks.Loss_Constructor import *
 from Networks.model_management import *
 
 from Testing.Test import *
-from Testing.Masks_test import *
 from Testing.PDF_reports import *
 from various_functions.tensor_tf_data_fonctions import *
 from various_functions.rapports_pdf_fonctions import *
@@ -307,7 +306,7 @@ def experience(taille:int,border:int,R:int,nombre_patch_test:int,nbre_validation
     # Flags Saving as JSON
     with open(os.path.join(os.path.join(root_rep,"_info_model"),"flags.json"), "w") as flag_file:
         json.dump(vars(Flags), flag_file) 
-    
+
     # Main Parameters Saving as TXT
     if training_main or testing_main:
         with open(os.path.join(os.path.join(root_rep,"_info_model"),"_PARAMETERS.json"), "w") as text_params:
@@ -611,9 +610,5 @@ def experience(taille:int,border:int,R:int,nombre_patch_test:int,nbre_validation
                                              bool_inference_benchmark=True,bool_process_test=True,type_branch="St3")
                 
     
-    # Mask inference on specific image with specific branches ---------------------------
-    if True:
-        print("Infering on images with pre-built masks and pre-trained models (MAIN and BRANCHES)")
-        Composition(main_network=main_network, ponderation_features=ponderation_features, ouverture=ouverture, border=border, BN_init=BN_init, BN_fin=BN_fin,  DOG_init=DOG_init, DOG_fin=DOG_fin,  w_h=w_h , w_v=w_v , w_h_s=w_h_s, w_v_s=w_v_s,sigma_noise_blur=sigma_noise_blur, benchmark_folder=benchmark_folder,save_rep=original_root,filtres_sr=filtres_sr, filtres_st=filtres_st, filtres_col=filtres_col,filtres_st3=filtres_st3,kernel=3 )  
 
 
